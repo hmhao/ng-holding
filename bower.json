@@ -1,0 +1,15 @@
+{
+  "name": "ng-holding",
+  "version": "0.0.1",
+  "main": [
+    "./dist/ng-holding.min.js"
+  ],
+  "ignore": [
+    "examples",
+    "src"
+  ],
+  "dependencies": {
+    "angular": "~1.4.1",
+    "bootstrap": "~3.3.5"
+  }
+}

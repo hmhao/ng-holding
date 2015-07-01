@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="ng-holding-test" id="top">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Angular directives for Bootstrap</title>
+    <link href="../bower_components/bootstrap/dist/css/bootstrap.css" rel="stylesheet"/>
+    <script src="../bower_components/jquery/dist/jquery.js"></script>
+    <script src="../bower_components/bootstrap/dist/js/bootstrap.js"></script>
+    <script src="../bower_components/angular/angular.js"></script>
+    <script src="./ngHolding.js"></script>
+</head>
+<body>
+
+<div ng-controller="NGHoldingCtrl">
+    <ul ng-holding="initHolding($event)" menu-items="menuItems">
+        <li ng-repeat="track in tracks" index="{{$index}}">
+            {{track.label}}
+        </li>
+    </ul>
+</div>
+
+
+<script>
+angular.module('ng-holding-test', ['ng-holding'])
+.controller('NGHoldingCtrl', function ($scope) {
+    var curTrackMenu = null;
+    $scope.tracks = [
+        {'label': 'Track1',save: true},
+        {'label': 'Track2',save: false},
+        {'label': 'Track3',save: false}
+    ];
+    $scope.menuItems = [
+        {
+            'label': '收藏',
+            active: false,
+            select: function(item, items, index){
+                item.active = !item.active;
+                curTrackMenu.save = item.active;
+            }
+        },
+        {
+            'label': '下载',
+            active: false,
+            select: function(item, items, index){
+
+            }
+        }
+    ];
+
+    $scope.initHolding = function($event){
+        var target = angular.element($event.target),
+             index = target.attr('index'),
+             track = $scope.tracks[index];
+        $scope.menuItems[0].active = track.save;
+        curTrackMenu = track;
+    };
+});
+</script>
+</body>
+</html>

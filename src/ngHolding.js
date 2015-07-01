@@ -1,0 +1,177 @@
+angular.module("ng-holding-menu.html", []).run(["$templateCache", function($templateCache) {
+    $templateCache.put("ng-holding-menu.html",
+        "<ul class=\"dropdown-menu\" ng-show='isShow' ng-style=\"{top: position.top+'px', left: position.left+'px'}\" style=\"display: block;\" role=\"listbox\">\n" +
+        "    <li ng-repeat=\"item in items track by $index\" ng-class=\"{active: item.active }\" ng-click=\"selectMatch($index)\" role=\"option\">\n" +
+        "       <a href=\"javascript:void(0)\">{{ item.label }}</a>\n" +
+        "    </li>\n" +
+        "</ul>\n" +
+        "");
+}]);
+
+var app = angular.module('ng-holding', ['ng-holding-menu.html']);
+
+app.service('ngHoldingService', ['$document', '$rootScope', '$compile', function($document, $rootScope, $compile) {
+    var openScope = null,
+        ignoreClick = false,
+        self = this;
+
+    this.delayTime = 500;
+
+    this.init = function( menuScope) {
+        var menuId = 'holdingMenu-' + menuScope.$id + '-' + Math.floor(Math.random() * 10000);
+        var ngHoldingMenu = angular.element('<div ng-holding-menu></div>');
+        ngHoldingMenu.attr({
+            id: menuId,
+            items: 'items',
+            show: 'isShow',
+            position: 'position',
+            select: 'select(activeIdx)'
+        });
+
+        //custom item template
+        if (menuScope.templateUrl) {
+            ngHoldingMenu.attr('template-url', menuScope.menuTemplateUrl);
+        }
+
+        menuScope.position = {
+            top: 0,
+            left: 0
+        };
+
+        menuScope.select = function (activeIdx) {
+            var item = menuScope.items[activeIdx],
+                fn = item.select;
+
+            if(angular.isDefined(fn)){
+                fn(item, menuScope.items, activeIdx);
+            }
+        };
+
+        menuScope.$ngHoldingMenu = $compile(ngHoldingMenu)(menuScope);
+    };
+
+    this.open = function(menuScope){
+        if ( openScope && openScope !== menuScope ) {
+            closeHoldingMenu(null);
+        }
+
+        if ( !openScope ) {
+            $document.bind('click', closeHoldingMenu);
+        }
+
+        openScope = menuScope;
+        if(openScope.items.length > 0){
+            menuScope.isShow = true;
+            if(openScope.$ngHoldingMenu.parent().length === 0)
+                $document.find('body').append(openScope.$ngHoldingMenu);
+        }else{
+            menuScope.isShow = false;
+        }
+        ignoreClick = true;
+    };
+
+    this.close = function( menuScope ) {
+        if ( openScope === menuScope ) {
+            $document.unbind('click', closeHoldingMenu);
+            openScope = null;
+        }
+    };
+
+    this.onHoldingHandler = function(scope, locals) {
+        var event = locals.$event,
+            target = angular.element(event.target),
+            height = target.height(),
+            pos = target.position();
+        scope.position.top = pos.top + height;
+        scope.position.left = pos.left + event.offsetX;
+        self.open(scope);
+    };
+
+    var closeHoldingMenu = function( evt ) {
+        if(ignoreClick){
+            ignoreClick = false;
+            return;
+        }
+
+        if (!openScope) { return; }
+
+        if ( evt && openScope.$ngHoldingMenu[0].contains(evt.target) ) {
+            return;
+        }
+
+        openScope.isShow = false;
+
+        if (!$rootScope.$$phase) {
+            openScope.$apply();
+        }
+
+        self.close(openScope);
+    };
+}]);
+
+app.directive('ngHolding', ['$timeout', '$parse', 'ngHoldingService', function($timeout, $parse, ngHoldingService) {
+    return {
+        restrict: 'A',
+        scope: {
+            delayTime: '=?holdingDelay',
+            menuItems:'=',
+            menuTemplateUrl: '='
+        },
+        link: function(scope, element, attrs) {
+            var delayTime = scope.delayTime || ngHoldingService.delayTime,
+                fn = attrs.ngHolding ? $parse(attrs.ngHolding) : null,
+                isHolding, timeoutId;
+
+            var menuScope = scope.$new();
+            menuScope.items = scope.menuItems || [];
+            menuScope.templateUrl = scope.menuTemplateUrl;
+            ngHoldingService.init(menuScope);
+
+            element.on('mousedown', function($event) {
+                isHolding = true;
+                timeoutId = $timeout(function() {
+                    if( isHolding ) {
+                        if(fn){
+                            fn(scope.$parent, {$event: $event});
+                        }
+                        if(menuScope.items){
+                            ngHoldingService.onHoldingHandler(menuScope, {$event: $event});
+                        }
+                    }
+                }, delayTime);
+            });
+
+            element.on('mouseup', function(event) {
+                isHolding = false;
+                if(timeoutId) {
+                    $timeout.cancel(timeoutId);
+                    timeoutId = null;
+                }
+            });
+        }
+    }
+}]);
+
+app.directive('ngHoldingMenu', ['$parse', function($parse) {
+    return {
+        restrict: 'EA',
+        scope:{
+            items:'=',
+            isShow:'=show',
+            position:'=',
+            select: '&'
+        },
+        replace:true,
+        templateUrl:'ng-holding-menu.html',
+        link:function (scope, element, attrs) {
+            scope.templateUrl = attrs.templateUrl;
+
+            scope.isShow = scope.items.length > 0;
+
+            scope.selectMatch = function (activeIdx) {
+                scope.select({activeIdx:activeIdx});
+            };
+        }
+    }
+    
+}]);
