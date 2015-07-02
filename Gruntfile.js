@@ -11,12 +11,22 @@ module.exports = function(grunt) {
         'copy:dev'
     ]);
 
+    grunt.registerTask('build', [
+        'clean',
+        'copy:js'
+    ]);
+
     grunt.registerTask('default', [
-        'dev',
+        'build',
         'uglify'
     ]);
 
     grunt.initConfig({
+        clean: {
+            working: {
+                src: ['./dist/']
+            }
+        },
         copy: {
             dev: {
                 files: [{
@@ -40,13 +50,22 @@ module.exports = function(grunt) {
                 }
             }
         },
+        wiredep: {
+            app: {
+                src: ['./examples/ngHolding.html']
+            }
+        },
         watch: {
             js: {
                 files: 'src/*.js',
-                tasks: ['copy'],
+                tasks: ['copy:dev'],
                 options: {
                     livereload: true
                 }
+            },
+            bower: {
+                files: ['bower.json'],
+                tasks: ['wiredep']
             }
         },
         connect: {
