@@ -16,7 +16,6 @@ var app = angular.module('ng-holding', ['ng-holding-menu.html']);
 
 app.service('ngHoldingService', ['$document', '$rootScope', '$compile', function($document, $rootScope, $compile) {
     var openScope = null,
-        ignoreClick = false,
         self = this;
 
     this.delayTime = 500;
@@ -71,7 +70,6 @@ app.service('ngHoldingService', ['$document', '$rootScope', '$compile', function
         }else{
             menuScope.isShow = false;
         }
-        ignoreClick = true;
     };
 
     this.close = function( menuScope ) {
@@ -92,11 +90,6 @@ app.service('ngHoldingService', ['$document', '$rootScope', '$compile', function
     };
 
     var closeHoldingMenu = function( evt ) {
-        if(ignoreClick){
-            ignoreClick = false;
-            return;
-        }
-
         if (!openScope) { return; }
 
         if ( evt && openScope.$ngHoldingMenu[0].contains(evt.target) ) {
@@ -124,6 +117,7 @@ app.directive('ngHolding', ['$timeout', '$parse', 'ngHoldingService', function($
         link: function(scope, element, attrs) {
             var delayTime = scope.delayTime || ngHoldingService.delayTime,
                 fn = attrs.ngHolding ? $parse(attrs.ngHolding) : null,
+                ignoreClick = false,
                 isHolding, timeoutId;
 
             var menuScope = scope.$new();
@@ -133,6 +127,7 @@ app.directive('ngHolding', ['$timeout', '$parse', 'ngHoldingService', function($
 
             element.on('mousedown', function($event) {
                 isHolding = true;
+                ignoreClick = false;
                 timeoutId = $timeout(function() {
                     if( isHolding ) {
                         if(fn){
@@ -141,6 +136,7 @@ app.directive('ngHolding', ['$timeout', '$parse', 'ngHoldingService', function($
                         if(menuScope.items){
                             ngHoldingService.onHoldingHandler(menuScope, {$event: $event});
                         }
+                        ignoreClick = true;
                     }
                 }, delayTime);
             });
@@ -151,6 +147,11 @@ app.directive('ngHolding', ['$timeout', '$parse', 'ngHoldingService', function($
                     $timeout.cancel(timeoutId);
                     timeoutId = null;
                 }
+            });
+
+            element.on('click', function(event) {
+                if(ignoreClick)
+                    event.stopImmediatePropagation();
             });
         }
     }
