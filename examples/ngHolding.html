@@ -21,7 +21,7 @@
 <body>
 
 <div ng-controller="NGHoldingCtrl">
-    <ul ng-holding="initHolding($event)" menu-items="menuItems">
+    <ul ng-holding="initHolding($event)" menu-items="menuItems" menu-template-url="menu.html" holding-delay="500">
         <li ng-repeat="track in tracks" index="{{$index}}">
             {{track.label}}
         </li>

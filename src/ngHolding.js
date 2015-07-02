@@ -117,9 +117,9 @@ app.directive('ngHolding', ['$timeout', '$parse', 'ngHoldingService', function($
     return {
         restrict: 'A',
         scope: {
-            delayTime: '=?holdingDelay',
+            delayTime: '@?holdingDelay',
             menuItems:'=',
-            menuTemplateUrl: '='
+            menuTemplateUrl: '@'
         },
         link: function(scope, element, attrs) {
             var delayTime = scope.delayTime || ngHoldingService.delayTime,
@@ -156,7 +156,7 @@ app.directive('ngHolding', ['$timeout', '$parse', 'ngHoldingService', function($
     }
 }]);
 
-app.directive('ngHoldingMenu', ['$parse', function($parse) {
+app.directive('ngHoldingMenu', [function() {
     return {
         restrict: 'EA',
         scope:{
@@ -166,10 +166,10 @@ app.directive('ngHoldingMenu', ['$parse', function($parse) {
             select: '&'
         },
         replace:true,
-        templateUrl:'ng-holding-menu.html',
+        templateUrl: function(element, attrs) {
+            return attrs.templateUrl || 'ng-holding-menu.html';
+        },
         link:function (scope, element, attrs) {
-            scope.templateUrl = attrs.templateUrl;
-
             scope.isShow = scope.items.length > 0;
 
             scope.selectMatch = function (activeIdx) {
