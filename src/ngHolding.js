@@ -1,10 +1,14 @@
 angular.module("ng-holding-menu.html", []).run(["$templateCache", function($templateCache) {
     $templateCache.put("ng-holding-menu.html",
-        "<ul class=\"dropdown-menu\" ng-show='isShow' ng-style=\"{top: position.top+'px', left: position.left+'px'}\" style=\"display: block;\" role=\"listbox\">\n" +
-        "    <li ng-repeat=\"item in items track by $index\" ng-class=\"{active: item.active }\" ng-click=\"selectMatch($index)\" role=\"option\">\n" +
-        "       <a href=\"javascript:void(0)\">{{ item.label }}</a>\n" +
-        "    </li>\n" +
-        "</ul>\n" +
+        "<div ng-show='isShow' ng-style=\"{top: position.top+'px', left: position.left+'px'}\" style=\"display: block;position: absolute;\">\n" +
+        "   <div style=\"width: 0;height: 0;font-size:0; line-height:0;border-width: 0 10px 10px;border-style:solid dashed dashed;border-color: transparent transparent rgba(0,0,0,1);;margin-bottom: -3px;position: relative;\"></div>\n" +
+        "   <div style=\"width: 0;height: 0;font-size:0; line-height:0;border-width: 0 10px 10px;border-style:solid dashed dashed;border-color: transparent transparent #FFF;position: absolute;top: 0px;\"></div>\n" +
+        "   <ul class=\"dropdown-menu\" style=\"display: block;\" role=\"listbox\">\n" +
+        "       <li ng-repeat=\"item in items track by $index\" ng-class=\"{active: item.active }\" ng-click=\"selectMatch($index)\" role=\"option\">\n" +
+        "           <a href=\"javascript:void(0)\">{{ item.label }}</a>\n" +
+        "       </li>\n" +
+        "   </ul>\n" +
+        "</div>\n" +
         "");
 }]);
 
@@ -173,5 +177,4 @@ app.directive('ngHoldingMenu', ['$parse', function($parse) {
             };
         }
     }
-    
 }]);
